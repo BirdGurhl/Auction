@@ -22,6 +22,6 @@
 竞拍结果查询等功能
 <img src="./Screenshot/竞拍结果.png">
 
-### 其它运行截图位于Screenshot目录下
+### 其它运行截图位于Screenshot目录下，还要部分功能未完全实现，有空再补上把
 
 
