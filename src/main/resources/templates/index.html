@@ -1,0 +1,116 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>拍卖商品列表</title>
+    <link href="css/common.css" rel="stylesheet" type="text/css"/>
+    <link href="css/style.css" rel="stylesheet" type="text/css"/>
+    <script src="js/WebCalendar.js"></script>
+</head>
+<body>
+<div class="wrap">
+    <!-- main begin-->
+    <div class="sale">
+        <h1 class="lf">在线拍卖系统</h1>
+        <div class="logout right"><a th:href="@{/doLogout}" title="注销">注销</a></div>
+    </div>
+    <div class="forms">
+        <form id="form_query" th:action="@{/getAllAuctions}" method="post">
+            <input type="hidden" id="pageNumber" name="pageNum" value="1"/>
+            <label for="name">名称</label>
+            <input name="auctionname" type="text" class="nwinput" id="name"
+                   th:value="${condition.auctionname}"/>
+            <label for="names">描述</label>
+            <input name="auctiondesc" type="text" id="names" class="nwinput"
+                   th:value="${condition.auctiondesc}"/>
+            <label for="time">开始时间</label>
+            <input name="auctionstarttime"
+                   th:value="${#dates.format(condition.auctionstarttime,'yyyy-MM-dd
+                   hh:mm:ss')}"
+                   type="text" id="time" class="nwinput" readonly="readonly"
+                   onclick="selectDate(this,'yyyy-MM-dd hh:mm:ss')"/>
+            <label for="end-time">结束时间</label>
+            <input name="auctionendtime"
+                   th:value="${#dates.format(condition.auctionendtime,'yyyy-MM-dd
+                   hh:mm:ss')}"
+                   type="text" id="end-time" class="nwinput" readonly="readonly"
+                   onclick="selectDate(this,'yyyy-MM-dd hh:mm:ss')"/>
+            <label for="price">起拍价</label>
+            <input name="auctionstartprice" type="text" id="price" class="nwinput"
+                   th:value="${condition.auctionstartprice}"/>
+            <input type="submit" value="查询" class="spbg buttombg f14 sale-buttom"/>
+        </form>
+        <!--管理员-->
+        <div th:if="${session.user.userisadmin==1}">
+            <button th:onclick="location='/addAuction'" class="spdg buttombg f14 sale-buttom
+buttom">发布
+            </button>
+        </div>
+        <!--普通用户-->
+        <div th:if="${session.user.userisadmin==0}">
+            <button th:onclick="location='/auctionResult'" class="spdg buttombg f14 salebuttom buttom">竞拍结果</button>
+        </div>
+    </div>
+    <div class="items">
+        <ul class="rows even strong">
+            <li>名称</li>
+            <li class="list-wd">描述</li>
+            <li>开始时间</li>
+            <li>结束时间</li>
+            <li>起拍价</li>
+            <li class="borderno">操作</li>
+        </ul>
+        <ul th:class="${state.odd?'rows':'rows even'}"
+            th:each="auction,state:${auctionList}">
+            <li><a href="国书" title="" th:text="${auction.auctionname}"></a></li>
+            <li class="list-wd" th:text="${auction.auctiondesc}"></li>
+            <li th:text="${#dates.format(auction.auctionstarttime,'yyyy-MM-dd
+            hh:mm:ss')}"></li>
+            <li th:text="${#dates.format(auction.auctionendtime,'yyyy-MM-dd
+            hh:mm:ss')}"></li>
+            <li th:text="${auction.auctionstartprice}"></li>
+            <li class="borderno red">
+                <!--管理员用户，有修改和删除权限功能-->
+                <span th:if="${session.user.userisadmin==1}">
+            <a th:href="@{/updateAuction/}+@{${auction.auctionid}}" title="修改">修改</a>|
+            <a th:href="@{/deleteAuction/}+@{${auction.auctionid}}" title="删除">删除</a>
+          </span>
+                <span th:if="${session.user.userisadmin==0}">
+<a href="#" title="竞拍"
+   th:onclick="'getAuctionDetail('+${auction.auctionid}+')'">竞拍</a>
+</span>
+            </li>
+        </ul>
+
+        <div class="page">
+            当前第<span th:text="${page.pageNum}"></span>页，
+            总共<span th:text="${page.pages}"></span>页，
+            总记录数<span th:text="${page.total}"></span>，
+            <a href="#" th:text="首页" th:onclick="'jumpPage('+${page.firstPage}+')'">
+            </a>
+            <a href="#" th:text="上一页" th:onclick="'jumpPage('+${page.prePage}+')'"></a>
+            <a href="#" th:text="下一页" th:onclick="'jumpPage('+${page.nextPage}+')'">
+            </a>
+            <a href="#" th:text="尾页" th:onclick="'jumpPage('+${page.lastPage}+')'"></a>
+        </div>
+    </div>
+    <script>
+        //跳转页面的单击事件的函数
+        function jumpPage(pageNum) {
+            if (pageNum == 0) {
+                pageNum = 1; //如果pageNum为0，就设置为1，相关于查询第一页的数据
+            }
+            location.href = "/getAllAuctions?pageNum=" + pageNum;
+        }
+
+        //跳转到竞拍页面,根据拍卖商品编号得到拍卖商品详情信息
+        function getAuctionDetail(auctionId) {
+            location.href = "/getAuctionCustomerByAuctionId?auctionId=" + auctionId;
+        }
+
+
+    </script>
+
+    <!-- main end-->
+</div>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.auction.mapper.AuctionCustomerMapper">
+    <!--创建一个多表连表查询的结果映射-->
+    <resultMap id="auctionMap" type="com.example.auction.pojo.Auction">
+        <id column="auctionId" jdbcType="INTEGER" property="auctionid"/>
+        <result column="auctionName" jdbcType="VARCHAR" property="auctionname"/>
+        <result column="auctionStartPrice" jdbcType="DECIMAL" property="auctionstartprice"/>
+        <result column="auctionUpset" jdbcType="DECIMAL" property="auctionupset"/>
+        <result column="auctionStartTime" jdbcType="TIMESTAMP" property="auctionstarttime"/>
+        <result column="auctionEndTime" jdbcType="TIMESTAMP" property="auctionendtime"/>
+        <result column="auctionPic" jdbcType="VARCHAR" property="auctionpic"/>
+        <result column="auctionPicType" jdbcType="VARCHAR" property="auctionpictype"/>
+        <result column="auctionDesc" jdbcType="VARCHAR" property="auctiondesc"/>
+        <!--auctionrecordList , 一个商品有多条记录 复制 Auctionrecord.xml的结果映射第5—9行数据 -->
+
+        <collection property="auctionrecordList" ofType="com.example.auction.pojo.Auctionrecord">
+            <id column="id" jdbcType="INTEGER" property="id"/>
+            <result column="userId" jdbcType="INTEGER" property="userid"/>
+            <result column="auctionId" jdbcType="INTEGER" property="auctionid"/>
+            <result column="auctionTime" jdbcType="TIMESTAMP" property="auctiontime"/>
+            <result column="auctionPrice" jdbcType="DECIMAL" property="auctionprice"/>
+            <!--一条竞拍记录对应一个竞拍用户-->
+            <association property="user" javaType="com.example.auction.pojo.User">
+                <!--注意在这里我们只需要竞拍人就可以了其他没有显示不需要-->
+                <result column="userName" jdbcType="VARCHAR" property="username"/>
+            </association>
+        </collection>
+    </resultMap>
+    <!--
+    提问：为什么之前使用 resultType ,而现在使用 resultMap ？
+    原因：因为我们现在使用的是连表查询，数据值不方便指定！
+    为什么使用 resultMap的原因？
+    是因为我们要进行连表查询，涉及到 表与表的关联关系，其映射 一对多、多对多的表关联查询!
+    auctionMap标红，报红色波浪线，原因需要我们自己定义映射关系
+    -->
+    <select id="selectAuctionByAuctionId" parameterType="integer" resultMap="auctionMap">
+        select a.*, r.id id, r.auctionid auctionId, r.userid userId, r.auctionprice, r.auctiontime, u.userName
+        from auction a
+                 left join auctionrecord r on a.auctionid = r.auctionId
+                 left join user u on u.userId = r.userId
+        where a.auctionid = #{auctionid}
+        order by r.auctionprice desc
+    </select>
+
+    <!--查询已经结束的商品信息-->
+    <select id="selectAuctionEndTime"
+            resultType="com.example.auction.pojo.AuctionCustomer">
+        SELECT
+            auction.auctionname,
+            auction.auctionstarttime,
+            auction.auctionendtime,
+            auction.auctionstartprice,
+            auctionrecord.auctionprice,
+            `user`.username
+        FROM
+            auction,auctionrecord,`user`
+        WHERE
+            auction.auctionid=auctionrecord.auctionid
+          AND auctionrecord.userid=`user`.userid
+          AND auction.auctionendtime<![CDATA[<]]>NOW()
+          AND auctionrecord.auctionprice=
+              (SELECT MAX(r.auctionprice) FROM auctionrecord r
+               WHERE r.auctionid=auction.auctionid)
+    </select>
+
+    <!--查看正在拍卖中的商品-->
+    <select id="selectAuctionNoEndTime" resultMap="auctionMap">
+    SELECT auction.*,
+    auctionrecord.id recored_id,
+    auctionrecord.userId recored_user_id,
+    auctionrecord.auctionId recored_auction_id,
+    auctionrecord.auctionTime,
+           auctionrecord.auctionPrice,
+           `user`.userName
+    FROM
+        auction,auctionrecord,`user`
+    WHERE
+        auction.auctionid=auctionrecord.auctionid
+      AND auctionrecord.userid=`user`.userid
+      AND auction.auctionendtime>NOW()
+    </select>
+</mapper>
