@@ -1,5 +1,6 @@
 # 工程简介
 ### 数据库脚本在项目根目录下的myauction.sql
+### 运行截图位于Screenshot目录下，还要部分功能未完全实现，有空再补上把
 ### 已实现功能：
 登录
 <img src="./Screenshot/登录.png">
@@ -22,6 +23,6 @@
 竞拍结果查询等功能
 <img src="./Screenshot/竞拍结果.png">
 
-### 其它运行截图位于Screenshot目录下，还要部分功能未完全实现，有空再补上把
+
 
 
